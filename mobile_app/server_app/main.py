@@ -34,7 +34,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") # variable that contains 
 users = {
     "student": {
         "username": "student",
-        "password_hash": "$2b$12$qtwy1y3k8S1fgUm9Zs9x9.b0gIwH95c7HJVnWRjjHY5FGGjvdcRlu" # student123
+        "password_hash": "$2b$12$qtwy1y3k8S1fgUm9Zs9x9.b0gIwH95c7HJVnWRjjHY5FGGjvdcRlu", # student123
+        "device": "H7x2m9Lp"
+    },
+     "kamil": {
+        "username": "kamil",
+        "password_hash": "$2b$12$W72NoajZlMaEKaVNcP6v8eb3PmOxwHdb6AHVPRuzh7H56pBeFcOki" # student123
     }
 }
 #verifying if user gave correct password
@@ -59,7 +64,7 @@ def check_access_token(access_token : Annotated[str, Cookie()] = None):
             detail="invalid token"
         )
     access_token = access_token.replace("Bearer ", "")
-    print (access_token)
+    #print (access_token)
 
     try:
         tokenData = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -98,7 +103,7 @@ async def read_users_me(token: str = Depends(check_access_token)):
     return {"user": username, "message": "NICE!"}
 
 class EventData(BaseModel):
-    event: str
+    event: strDD
     confidence: float
 
 
@@ -109,8 +114,14 @@ class DeviceEvent(BaseModel):
 
 
 
-@app.post("/api/device/event")
-def receive_device_event(event: DeviceEvent):
+@app.post("/api/device/event/{device_id}")
+def receive_device_event(event: DeviceEvent, device_id: str, username: str = Depends(check_access_token)):
+    user = users[username]
+    if user["device"] != device_id:
+       raise HTTPException(
+           status_code= status.HTTP_401_UNAUTHORIZED
+       )
+
     """
     Endpoint receiving data from Raspberry Pi
     """
