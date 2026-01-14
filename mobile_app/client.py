@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 
-URL = "https://ikar.onrender.com/api/device/event"
+URL = f"https://ikar.onrender.com/api/device/event/{"H7x2m9Lp"}"
 
 
 timestamp = datetime.now().isoformat()

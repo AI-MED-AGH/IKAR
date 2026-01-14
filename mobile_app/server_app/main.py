@@ -103,7 +103,7 @@ async def read_users_me(token: str = Depends(check_access_token)):
     return {"user": username, "message": "NICE!"}
 
 class EventData(BaseModel):
-    event: strDD
+    event: str
     confidence: float
 
 
