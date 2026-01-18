@@ -1,0 +1,4 @@
+pykinect2
+comtypes
+numpy
+opencv-python
