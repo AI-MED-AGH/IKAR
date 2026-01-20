@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+</head>
+
+<body>
+        <div id="status">Status: Connectedd to Websocket</div>
+        
+        <script>
+            
+            let username;
+            var ws;
+           fetch('/me', { //getting username from user that has log in
+            method: 'GET', 
+            
+            headers: {
+                'Content-Type': 'application/json'
+            }
+            })
+            .then(response => response.json())
+            .then(data =>{ 
+                username = data // username
+                const URL = "ws://localhost:8000/ws/"+username; // URL of websocket
+                console.log(URL)
+                 ws = new WebSocket(URL); // connecting to websocket
+                 // Function that listens if websocket got message
+            ws.onmessage = function(event) {
+               let dataJSON = JSON.parse(event.data) // converting string to JSON
+                console.log(dataJSON)
+                alert("DEVICE MESSAGE: " + dataJSON.data.event); 
+            };
+            // Function that listens if websocket was close
+            ws.onclose = function(event) {
+                document.getElementById("status").innerText = "Status: Disconnected";
+            };
+
+            })
+            .catch(err => console.error(err));
+            
+            
+        </script>
+
+</body>
+</html>

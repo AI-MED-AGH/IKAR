@@ -1,13 +1,13 @@
 import requests
 from datetime import datetime
 
-URL = f"https://ikar.onrender.com/api/device/event/{"H7x2m9Lp"}"
+URL = f"http://127.0.0.1:8000/trigger-alert"
 
 
 timestamp = datetime.now().isoformat()
 
 data = {
-    "device_id": "1",
+    "device_id": "2",
     "timestamp": timestamp,
     "data": {
         "event": "fall detected",
