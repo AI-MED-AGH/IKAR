@@ -32,4 +32,3 @@ class TrainingLogger:
     def close(self):
         if self.file:
             self.file.close()
-#python is the best
