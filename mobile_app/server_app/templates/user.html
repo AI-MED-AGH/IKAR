@@ -27,8 +27,7 @@
                 const URL = "ws://localhost:8000/ws/"+username; // URL of websocket
                 console.log(URL)
                  ws = new WebSocket(URL); // connecting to websocket
-                 // Function that listens if websocket got message
-            ws.onmessage = function(event) {
+            ws.onmessage = function(event) {    // Function that listens if websocket got message
                let dataJSON = JSON.parse(event.data) // converting string to JSON
                 console.log(dataJSON)
                 alert("DEVICE MESSAGE: " + dataJSON.data.event); 

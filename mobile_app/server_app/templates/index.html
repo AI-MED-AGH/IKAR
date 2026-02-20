@@ -4,8 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+
+    <script>
+
+        function rejestr()
+        {
+            document.getElementById("login").style = "display: None;"
+            document.getElementById("rejestracja").style = "display: flex;"
+        }
+        function check()
+        {
+            pass1 = document.getElementById("password1").value
+            pass2 = document.getElementById("password2").value
+            if(pass1 == pass2)
+                document.getElementById("rejestr").disabled = false
+            else
+                document.getElementById("rejestr").disabled = true
+        }
+
+    </script>
 </head>
 <body>
+    <div id="login">
     <form action="/token" method="post" >
     <label>Username:</label>
     <input type="text" name="username">
@@ -13,7 +33,31 @@
     <label>password:</label>
     <input type="password" name="password">
     <br>
-    <button type="submit">Wyślij</button>
+    <button type="submit">Zaloguj się</button>
+    <button type="button" onclick="rejestr()">Nie mam konta</button>
+    </form>
+    </div>
+    <div id="rejestracja" style="display: none;">
+        <form action="/create_user" method="post">
+            <label>Username:</label>
+            <input type="text" name="username" required>
+            <br>
+            <label>Password:</label>
+            <input type="password" id="password1" onchange="check()" name="password" required>
+            <br>
+            <label>Repeat password:</label>
+            <input type="password" id="password2" onchange="check()" name="password2" required>
+            <br>
+            <label>Device id:</label>
+            <input type="text" name="device_id" required>
+            <br>
+            <button type="submit" disabled="True" id="rejestr">Załóż konto</button>
+        </form>
+
+
+    </div>
+
+
 </form>
 </body>
 </html>
