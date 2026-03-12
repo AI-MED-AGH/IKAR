@@ -7,7 +7,7 @@ URL = f"http://127.0.0.1:8000/trigger-alert"
 timestamp = datetime.now().isoformat()
 
 data = {
-    "device_id": "1",
+    "device_id": "5",
     "timestamp": timestamp,
     "data": {
         "event": "fall detected",

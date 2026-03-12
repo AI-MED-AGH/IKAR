@@ -10,18 +10,31 @@ from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, update
 from contextlib import asynccontextmanager
-from db import create_db_and_tables, get_session
-from models import Users, Devices
+from db import create_db_and_tables, get_session, engine
+from models import Users, Devices, Association
 
 templates = Jinja2Templates(directory="templates")
 
 load_dotenv() # loading env variables
 
+def seed(session: Session = Depends(get_session)): #if table of devicies is empty then adding some devices for tests
+    with Session(engine) as session:
+        query = select(Devices)
+        result = session.exec(query).first()
+        if not result:
+            for i in range(0, 9):
+                dev = Devices(id=f"{i+1}")
+                session.add(dev)
+        
+            session.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()  # Tworzymy tabele
+    create_db_and_tables()  # Creating table
+    seed()
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -47,19 +60,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # hashing and 
 #login endpoint is at .../token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") # variable that contains our token
 
-#users db
-users = {
-    "student": {
-        "username": "student",
-        "password_hash": "$2b$12$qtwy1y3k8S1fgUm9Zs9x9.b0gIwH95c7HJVnWRjjHY5FGGjvdcRlu", # student123
-        "device": "1"
-    },
-     "kamil": {
-        "username": "kamil",
-        "password_hash": "$2b$12$W72NoajZlMaEKaVNcP6v8eb3PmOxwHdb6AHVPRuzh7H56pBeFcOki", # student123
-        "device": "2"
-    }
-}
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
@@ -95,7 +95,7 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM) # generating our token
     return encoded_jwt  # returning token
 
-def check_access_token(access_token : Annotated[str, Cookie()] = None, session: Session = Depends(get_session)):
+def check_access_token(access_token : Annotated[str, Cookie()] = None, session: Session = Depends(get_session)): # checking if token is valid
     if access_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -131,7 +131,6 @@ def main(request: Request):
 
 @app.post("/token") 
 async def login( response: Response ,form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)): # in form_data we have login and password that client type in
-    # user = users.get(form_data.username) # here we have data of our user, if exists
     query = select(Users).where(Users.username == form_data.username)
     user = session.exec(query).first()
 
@@ -164,32 +163,21 @@ async def websocket_endpoint(websocket: WebSocket, username:str):
 @app.post("/trigger-alert") # endpoints that receives data from AI
 async def trigger_alert(message: DeviceEvent, session: Session = Depends(get_session)):
 
-    # searching for user that has assigned device that is sending message
-    # for username, user_data in users.items():
-    #     if user_data["device"] == message.device_id:
-    #         await manager.broadcast(message,username)
-    #         break
-
-    query = select(Devices).where(Devices.id == message.device_id)
-    device = session.exec(query).first()
-    users = device.users
+    query = select(Association).where(Association.device_id == message.device_id)
+    users = session.exec(query).all()
     for user in users:
-        await manager.broadcast(message, user.username)
+        await manager.broadcast(message, user.user_id)
     return {"message": "Alert send"}
 
-@app.post("/create_user")
-async def create_user(username: str = Form(...), password: str = Form(...), device_id: str = Form(...), session: Session = Depends(get_session)):
+@app.post("/create_user") # adding new user to database
+async def create_user(username: str = Form(...), password: str = Form(...), session: Session = Depends(get_session)):
     hashPass = pwd_context.hash(password)
-    data = Users(username=username, password_hash=hashPass, device_id=device_id)
-    device_temp = Devices(id = device_id)
-
-    session.add(device_temp)
-    session.commit()
-    session.refresh(device_temp)
+    data = Users(username=username, password_hash=hashPass)
     session.add(data)
     session.commit()
     session.refresh(data)
-    return data.username
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    return response
 
 @app.get("/users/me") # endpoint that receives alerts from AI in real-time
 async def read_users_me(request: Request, token: Users = Depends(check_access_token)):
@@ -198,8 +186,31 @@ async def read_users_me(request: Request, token: Users = Depends(check_access_to
         name="user.html"
     )
 
+@app.post("/add") # assigning device to user
+async def addDevice(device_id :str = Form(...), session: Session = Depends(get_session), token: Users = Depends(check_access_token)):
+    query = select(Devices).where(Devices.id == device_id)
+    device = session.exec(query).first()
+    user = session.get(Users, token.username)
+    device.users.append(user)
+    session.add(device)
+    session.commit()
+    session.refresh(device)
+    response = RedirectResponse(url="/users/me", status_code=status.HTTP_303_SEE_OTHER)
+    return response
+
+
 @app.get("/me") # endpoint that returns username from token
 async def getMe(token: Users = Depends(check_access_token)):
-    print(token)
     return token.username
 
+@app.get("/available_devices") # getting list of devices that are not assigned to current user
+async def getDevices(session: Session = Depends(get_session), token: Users = Depends(check_access_token)):
+    black_list = select(Association.device_id).where(Association.user_id == token.username)
+    query = select(Devices.id).where(Devices.id.notin_(black_list))
+    return session.exec(query).all()
+
+@app.get("/assigned_devices") # getting list of devices that are assigned to current user
+async def getDevices(session: Session = Depends(get_session), token: Users = Depends(check_access_token)):
+
+    query = select(Association.device_id).where(Association.user_id == token.username)
+    return session.exec(query).all()

@@ -8,12 +8,62 @@
 </head>
 
 <body>
-        <div id="status">Status: Connectedd to Websocket</div>
+        <div id="status">Status: Connected to Websocket</div>
+        <form action="/add" method="post" >
+        <label>Device id</label>
+        <input type="text" name="device_id">
+        <button type="submit">Dodaj</button>
         
+        </form>
+        <div id="devices">
+            <p>Assigned devices</p>
+            <div id="assigned"></div>
+            <p>Available devices</p>
+            <div id="available"></div>
+        </div>
+
         <script>
             
             let username;
             var ws;
+            //getting list of assigned devices
+            fetch("/assigned_devices", {
+                method: 'GET',
+                headers: {
+                    'Content-type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then( data=>{
+                destination = document.getElementById("assigned")
+                for(i in data){
+                    let tekst = data[i]
+                    tekst += ' '
+                    destination.textContent += tekst
+                }
+            })
+            .catch(err => console.error(err));
+            //getting list of not assigned devices
+            fetch("/available_devices", {
+                method: 'GET',
+                headers: {
+                    'Content-type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then( data=>{
+                destination = document.getElementById("available")
+                for(i in data){
+                    let tekst = data[i]
+                    tekst += ' '
+                    destination.textContent += tekst
+                }
+            })
+            .catch(err => console.error(err));
+            
+
+
+
            fetch('/me', { //getting username from user that has log in
             method: 'GET', 
             
