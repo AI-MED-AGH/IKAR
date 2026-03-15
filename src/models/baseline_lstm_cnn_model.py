@@ -10,7 +10,9 @@ class LSTM_CNN(nn.Module):
             nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
             nn.ReLU()
         )
-        self.lstm = nn.LSTM(input_size=64*joints_num, hidden_size=hidden_size)
+        self.lstm = nn.LSTM(input_size=64*joints_num,
+                            hidden_size=hidden_size,
+                            batch_first=True)
         self.fc = nn.Linear(hidden_size, 2)
     def forward(self,x: torch.Tensor) -> torch.Tensor:
         B, T, J, C = x.shape

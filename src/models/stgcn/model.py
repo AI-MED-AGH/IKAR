@@ -1,1 +1,0 @@
-# ST-GCN model placeholder
