@@ -1,0 +1,64 @@
+Fall detection system consists of: sensors, processing unit, and alarm communication mechanism. In our case, we consider a non-wearable system. Vision-based systems typically use: RGB cameras, thermal cameras, and depth sensors such as Kinect. The most common disadvantages of camera-based systems are: sensitivity to lighting conditions, privacy concerns, and large amounts of processed data.
+
+Human motion is usually divided into: fall, walking, sitting, and other activities of daily living (ADL).
+
+Main stages of the system:
+Data Acquisition → Preprocessing (noise filtering, normalization, signal segmentation into time windows) → Feature Extraction → Classification.
+
+Commonly used algorithms: SVM, KNN, Random Forest (RF), Gradient Boosting; however, CNN + LSTM is used most frequently (LSTM analyzes temporal changes). It is often combined with YOLO and a simple program-based classifier.
+
+Potential problems and issues observed in SisFall and KFall datasets:
+- excessive generalization (recordings mainly involve young subjects),
+- person-dependent validation (the model may learn the individual rather than the fall phenomenon),
+- young participants usually exaggerate fall dynamics,
+- high percentage of false alarms,
+- simple feature extraction may not be sufficient,
+- limited evaluation metrics reported by authors (missing F1-score, precision, AUC, and exact number of false alarms),
+- after quantization, there is also no information about runtime performance, energy consumption, and real-time stability.
+
+Recommended recording duration: approximately 3–6 seconds.
+If YOLO + pose classification is used, recordings should be longer and captured at 30 FPS.
+It is necessary to consider gender, weight, age, and height of recorded participants.
+
+List of required recordings:
+
+D01 – Stand for 30 seconds
+D02 – Stand, slowly bend the back with or without bending at knees, tie shoelace, and stand up
+D03 – Pick up an object from the floor
+D04 – Gently jump (try to reach an object)
+D05 – Stand, sit on the ground, wait a moment, and stand up at normal speed
+D06 – Walk normally with turn (4 m)
+D07 – Walk quickly with turn (4 m)
+D08 – Jog normally with turn (4 m)
+D09 – Jog quickly with turn (4 m)
+D10 – Stumble while walking
+D11 – Sit on a chair for 30 seconds
+D12 – Sit on a sofa (back inclined) for 30 seconds
+D13 – Sit down on a chair normally and stand up normally
+D14 – Sit down on a chair quickly and stand up quickly
+D15 – Sit for a moment, attempt to stand up, and collapse into a chair
+D16 – Stand, sit on a sofa (back inclined), and stand up normally
+D17 – Lie on a bed for 30 seconds
+D18 – Sit for a moment, lie down on a bed normally, and stand up normally
+D19 – Sit for a moment, lie down on a bed quickly, and stand up quickly
+D20 – Walk upstairs and downstairs normally (5 steps)
+D21 – Walk upstairs and downstairs quickly (5 steps)
+
+F01 – Forward fall while trying to sit down
+F02 – Backward fall while trying to sit down
+F03 – Lateral fall while trying to sit down
+F04 – Forward fall while trying to stand up
+F05 – Lateral fall while trying to stand up
+F06 – Forward fall while sitting caused by fainting
+F07 – Lateral fall while sitting caused by fainting
+F08 – Backward fall while sitting caused by fainting
+F09 – Vertical (forward) fall while walking caused by fainting
+F10 – Fall while walking, using hands to dampen fall, caused by fainting
+F11 – Forward fall while walking caused by a trip
+F12 – Forward fall while jogging caused by a trip
+F13 – Forward fall while walking caused by a slip
+F14 – Lateral fall while walking caused by a slip
+F15 – Backward fall while walking caused by a slip
+
+D – non-fall recordings
+F – fall recordings
